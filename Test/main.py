@@ -3,108 +3,37 @@ import random
 import game_framework
 from pico2d import *
 
-
-
+from guy import Guy
+from wall import Wall
+from background import Background
 name = "MainState"
 
 guy = None
 bg = None
-view = None
-
-class Background:
-    def __init__(self):
-        self.x, self.y = 0,0
-        self.image = load_image('technology1.jpg')
-    def update(self,other):
-        if other.position == other.BOTTOM:
-            self.x -= 20
-        elif other.position == other.TOP:
-            self.x += 20
-        elif other.position == other.RIGHT:
-            self.y -= 20
-        elif other.position == other.LEFT:
-            self.y += 20
-
-        if self.x == -1600 or self.x == 1600:
-            self.x = 0
-        if self.y == -1600 or self.y == 1600:
-            self.y = 0
-
-    def draw(self):
-        self.image.draw(self.x, self.y)
-        self.image.draw(self.x + 1600, self.y)
-        self.image.draw(self.x - 1600, self.y)
-        self.image.draw(self.x + 1600, self.y + 1600)
-        self.image.draw(self.x - 1600, self.y + 1600)
-        self.image.draw(self.x + 1600, self.y - 1600)
-        self.image.draw(self.x - 1600, self.y - 1600)
-        self.image.draw(self.x, self.y + 1600)
-        self.image.draw(self.x, self.y - 1600)
-
-class View:
-    def __init__(self):
-        self.x, self.y = 400,300
-
-    def update(self, other):
-        if other.position == other.BOTTOM:
-            self.x = max(other.x, self.x)
-        elif other.position == other.TOP:
-            self.x = min(other.x, self.x)
-        elif other.position == other.RIGHT:
-            self.y = max(other.y, self.y)
-        elif other.position == other.LEFT:
-            self.y = min(other.y, self.y)
 
 
-class Guy:
-    jumping = None
-    RUN, JUMP, SPIN = 0, 1, 2
-    TOP, BOTTOM, LEFT, RIGHT = 6, 0, 9, 3
-    action, position = RUN, BOTTOM
-    def __init__(self):
-        self.x, self.y = 100, 90
-        self.frame = 0
-        self.image = load_image('guy.png')
-        self.dir = 1
 
 
-    def update(self):
-        if self.action == self.RUN:
-            self.frame = (self.frame + 1) % 6
-            self.x += 10
 
-        elif self.action == self.JUMP:
-            if self.jumping == None:
-                self.jumping = True
-                self.frame = 0
-            else:
-                if self.frame < 7:
-                    self.x += 20 * self.dir
-                    if self.frame < 2:
-                        self.y += 70
-                    elif self.frame > 4:
-                        self.y -= 70
-                    self.frame = (self.frame + 1) % 8
-                else:
-                    self.jumping = None
-                    self.action = self.RUN
-                    self.frame = 0
-    def draw(self):
-        self.image.clip_draw(self.frame * 100, (11 -self.action -self.position) * 100, 100, 100, self.x, self.y)
 
 
 def enter():
-    global guy, bg, view
+    global guy, bg, wall, map
     guy = Guy()
+    map = create_map()
     bg = Background()
-    view = View()
+    guy.set_bg(bg)
+    for wall in map:
+        wall.set_bg(bg)
+
+
 
 
 def exit():
-    global guy, bg, view
+    global guy, bg
     del(guy)
     del(bg)
-    del(view)
+
 
 
 
@@ -116,30 +45,132 @@ def resume():
     pass
 
 
-def handle_events():
+
+def handle_events(frame_time):
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
             game_framework.quit()
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE:
-            guy.action = guy.JUMP
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_c:
-            guy.action = guy.SPIN
+        else :
+            guy.handle_events(event)
         #elif event.type == SDL_KEYDOWN and event.key == SDLK_p:
             #game_framework.push_state(pause_state)
 
 
-def update():
-    guy.update()
-    #bg.update(view)
-    view.update(guy)
-    delay(0.05)
+def create_map():
+    map = []
+    for i in range(1,3):
+        wall = Wall()
+        wall.x = 500
+        wall.y = 25*i*2
+        map.append(wall)
+
+    for i in range(1,3):
+        wall = Wall()
+        wall.x = 550
+        wall.y = 25*i*2
+        map.append(wall)
+
+    for i in range(1,4):
+        wall = Wall()
+        wall.x = 700
+        wall.y = 25*i*2
+        map.append(wall)
+
+    for i in range(2,4):
+        wall = Wall()
+        wall.x = 900
+        wall.y = 25*i*2
+        map.append(wall)
+    for i in range(0,20):
+        wall = Wall()
+        wall.x = 25*i*2 + 100
+        wall.y = 0
+        map.append(wall)
+
+    for i in range(0,20):
+        wall = Wall()
+        wall.x = 100
+        wall.y = 25*i*2
+        map.append(wall)
+
+    for i in range(0,20):
+        wall = Wall()
+        wall.x = 25*i*2 + 100
+        wall.y = 1000
+        map.append(wall)
+
+    for i in range(0,20):
+        wall = Wall()
+        wall.x = 1100
+        wall.y = 25*i*2
+        map.append(wall)
+    return map
+
+def collide(a, b):
+    collision = 0
+    left_a, bottom_a, right_a, top_a = a.get_bb()
+    left_b, bottom_b, right_b, top_b = b.get_bb()
+
+    #if guy.position == guy.Bottom:
+    #    if guy.x >= left_b and guy.x < right_b  and bottom_a < top_b and top_a > bottom_b:
+    #elif guy.position == guy.Right:
+    #    if guy.x >= left_b and guy.x < right_b  and bottom_a < top_b and top_a > bottom_b:
+    #elif guy.position == guy.Top:
+    #    if guy.x >= left_b and guy.x < right_b and bottom_a < top_b and top_a > bottom_b:
+    #elif guy.position == guy.Left:
+    #    if guy.x >= left_b and guy.x < right_b and bottom_a < top_b and top_a > bottom_b:
+    if left_a > right_b: return False
+    if right_a < left_b: return False
+    if top_a < bottom_b: return False
+    if bottom_a > top_b: return False
 
 
-def draw():
+
+    if bottom_a < top_b and bottom_a > top_b-20: collision += 1 #블록 상
+    if right_a > left_b and right_a < left_b+20: collision += 2 #블록 좌
+    if top_a > bottom_b and top_a < bottom_b+20: collision += 4 #블록 하
+    if left_a < right_b and left_a > right_b-20: collision += 8 #블록 우
+    return collision
+
+
+
+def update(frame_time):
+    guy.update(frame_time)
+    bg.update(frame_time)
+
+    for wall in map:
+        wall.update(frame_time)
+        if(collide(guy,wall) > 0):
+            print("Guy %d, %d, Wall %d, %d : %d" % (guy.x, guy.y, wall.x, wall.y, collide(guy, wall)))
+        if guy.position == guy.BOTTOM:
+            if wall.y  > guy.y - 75 and wall.y < guy.y + 75 and collide(guy,wall) == 2:
+                guy.x = wall.x - 50
+            if wall.x >= guy.x - 25 and wall.x < guy.x + 25 and collide(guy, wall) in (1, 3, 9) :
+                guy.y = wall.y + 75
+                guy.falling = False
+
+        if guy.position == guy.RIGHT and collide(guy, wall) in (2, 3, 6):
+            guy.x = wall.x - 75
+            guy.falling = False
+        if guy.position == guy.TOP and collide(guy, wall)in (4, 6, 12):
+            guy.y = wall.y - 75
+            guy.falling = False
+        if guy.position == guy.LEFT and collide(guy, wall)in (8, 9, 12):
+            guy.x = wall.x + 75
+            guy.falling = False
+
+
+
+
+
+def draw(frame_time):
     clear_canvas()
     bg.draw()
+    for wall in map:
+        wall.draw()
     guy.draw()
+    guy.draw_bb()
     update_canvas()
 
 
