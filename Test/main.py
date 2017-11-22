@@ -3,8 +3,13 @@ import random
 import game_framework
 from pico2d import *
 
+
+from death import Death
 from guy import Guy
 from wall import Wall
+from portal import Portal
+from clear import Clear
+
 from background import Background
 name = "MainState"
 
@@ -18,13 +23,22 @@ bg = None
 
 
 def enter():
-    global guy, bg, wall, map
+    global guy, bg, wall, map, death, portal, clear
     guy = Guy()
     map = create_map()
     bg = Background()
+    death = Death()
+    portal = Portal()
+    clear = Clear()
     guy.set_bg(bg)
+    death.set_bg(bg)
+    death.set_guy(guy)
+    clear.set_bg(bg)
+    clear.set_guy(guy)
+    portal.set_bg(bg)
     for wall in map:
         wall.set_bg(bg)
+
 
 
 
@@ -59,106 +73,287 @@ def handle_events(frame_time):
 
 def create_map():
     map = []
-    for i in range(1,3):
-        wall = Wall()
-        wall.x = 500
-        wall.y = 25*i*2
-        map.append(wall)
 
-    for i in range(1,3):
-        wall = Wall()
-        wall.x = 550
-        wall.y = 25*i*2
-        map.append(wall)
+    wall = Wall()
+    wall.x = 1200
+    wall.y = 450
+    map.append(wall)
 
-    for i in range(1,4):
-        wall = Wall()
-        wall.x = 700
-        wall.y = 25*i*2
-        map.append(wall)
+    wall = Wall()
+    wall.x = 1200
+    wall.y = 400
+    map.append(wall)
 
-    for i in range(2,4):
+    wall = Wall()
+    wall.x = 1200
+    wall.y = 350
+    map.append(wall)
+
+    wall = Wall()
+    wall.x = 1200
+    wall.y = 300
+    map.append(wall)
+
+    wall = Wall()
+    wall.x = 1250
+    wall.y = 450
+    wall.shape = 4
+    map.append(wall)
+
+    wall = Wall()
+    wall.x = 1250
+    wall.y = 400
+    wall.shape = 4
+    map.append(wall)
+
+    wall = Wall()
+    wall.x = 1250
+    wall.y = 350
+    wall.shape = 4
+    map.append(wall)
+
+    wall = Wall()
+    wall.x = 1250
+    wall.y = 300
+    wall.shape = 4
+    map.append(wall)
+
+    wall = Wall()
+    wall.x = 1750
+    wall.y = 100
+    map.append(wall)
+
+    wall = Wall()
+    wall.x = 600
+    wall.y = 100
+    map.append(wall)
+
+    for i in range(0,100):
         wall = Wall()
-        wall.x = 900
-        wall.y = 25*i*2
-        map.append(wall)
-    for i in range(0,20):
-        wall = Wall()
-        wall.x = 25*i*2 + 100
+        wall.x = 50*i + 100
         wall.y = 0
         map.append(wall)
 
-    for i in range(0,20):
+    for i in range(0,10):
         wall = Wall()
         wall.x = 100
-        wall.y = 25*i*2
+        wall.y = 50*i
         map.append(wall)
 
-    for i in range(0,20):
+    for i in range(0,100):
         wall = Wall()
         wall.x = 25*i*2 + 100
-        wall.y = 1000
+        wall.y = 500
         map.append(wall)
 
-    for i in range(0,20):
+    for i in range(0,10):
         wall = Wall()
-        wall.x = 1100
-        wall.y = 25*i*2
+        wall.x = 2000
+        wall.y = 50*i
         map.append(wall)
     return map
 
 def collide(a, b):
-    collision = 0
+
     left_a, bottom_a, right_a, top_a = a.get_bb()
     left_b, bottom_b, right_b, top_b = b.get_bb()
 
-    #if guy.position == guy.Bottom:
-    #    if guy.x >= left_b and guy.x < right_b  and bottom_a < top_b and top_a > bottom_b:
-    #elif guy.position == guy.Right:
-    #    if guy.x >= left_b and guy.x < right_b  and bottom_a < top_b and top_a > bottom_b:
-    #elif guy.position == guy.Top:
-    #    if guy.x >= left_b and guy.x < right_b and bottom_a < top_b and top_a > bottom_b:
-    #elif guy.position == guy.Left:
-    #    if guy.x >= left_b and guy.x < right_b and bottom_a < top_b and top_a > bottom_b:
+
     if left_a > right_b: return False
     if right_a < left_b: return False
     if top_a < bottom_b: return False
     if bottom_a > top_b: return False
 
 
-
-    if bottom_a < top_b and bottom_a > top_b-20: collision += 1 #블록 상
-    if right_a > left_b and right_a < left_b+20: collision += 2 #블록 좌
-    if top_a > bottom_b and top_a < bottom_b+20: collision += 4 #블록 하
-    if left_a < right_b and left_a > right_b-20: collision += 8 #블록 우
-    return collision
+    return True
 
 
 
 def update(frame_time):
+
     guy.update(frame_time)
+    portal.update(frame_time)
+    death.update(frame_time)
+    clear.update(frame_time)
     bg.update(frame_time)
+
+    if portal.dir == 0 and guy.position in (guy.BOTTOM, guy.TOP) and collide(guy, portal):
+        guy.clear = True
+    elif portal.dir == 1 and guy.position in (guy.RIGHT, guy.LEFT) and collide(guy, portal):
+        guy.clear = True
+
+
+
+    NOT = 0
+    BOTTOM = 1
+    RIGHT = 2
+    TOP = 3
+    LEFT = 4
+    ALL = 5
+    fcount = 0
+    count = 0
 
     for wall in map:
         wall.update(frame_time)
-        if(collide(guy,wall) > 0):
-            print("Guy %d, %d, Wall %d, %d : %d" % (guy.x, guy.y, wall.x, wall.y, collide(guy, wall)))
+        dir = NOT
         if guy.position == guy.BOTTOM:
-            if wall.y  > guy.y - 75 and wall.y < guy.y + 75 and collide(guy,wall) == 2:
+            if guy.x > wall.x - 50 and guy.x < wall.x + 50 and guy.y <= wall.y + 75 and guy.y > wall.y + 60:
+                dir = BOTTOM
+            elif guy.x > wall.x - 50 and guy.x < wall.x + 50 and guy.y > wall.y - 75 and guy.y < wall.y - 55 and guy.action == guy.JUMP:
+                dir = TOP
+            elif guy.x > wall.x - 50 and guy.x < wall.x + 50 and guy.y > wall.y - 50 and guy.y < wall.y - 35 and guy.action == guy.SPIN:
+                dir = TOP
+            elif guy.x >= wall.x - 50 and guy.x <= wall.x - 35 and guy.y > wall.y - 75 and guy.y <  wall.y + 75:
+                dir = RIGHT
+
+        elif guy.position == guy.RIGHT:
+            if guy.y > wall.y - 50 and guy.y < wall.y + 50 and guy.x >= wall.x - 75 and guy.x <  wall.x - 60:
+                dir = RIGHT
+            elif guy.y > wall.y - 50 and guy.y < wall.y + 50 and guy.x < wall.x + 75 and guy.x >  wall.x + 55 and guy.action == guy.JUMP:
+                dir = LEFT
+            elif guy.y > wall.y - 50 and guy.y < wall.y + 50 and guy.x < wall.x + 50 and guy.x >  wall.x + 35 and guy.action == guy.SPIN:
+                dir = LEFT
+            elif guy.y >= wall.y - 50 and guy.y <= wall.y - 35 and guy.x < wall.x + 75 and guy.x > wall.x - 75:
+                dir = TOP
+
+        elif guy.position == guy.TOP:
+            if guy.x >  wall.x - 50 and guy.x < wall.x + 50 and guy.y >=  wall.y - 75 and guy.y < wall.y - 60:
+                dir = TOP
+            elif guy.x > wall.x - 50 and guy.x < wall.x + 50 and guy.y < wall.y + 75 and guy.y > wall.y + 55 and guy.action == guy.JUMP:
+                dir = BOTTOM
+            elif guy.x > wall.x - 50 and guy.x < wall.x + 50 and guy.y < wall.y + 50 and guy.y > wall.y + 35 and guy.action == guy.SPIN:
+                dir = BOTTOM
+            elif guy.x >= wall.x + 35 and guy.x <= wall.x + 50 and guy.y > wall.y - 75 and guy.y <  wall.y + 75:
+                dir = LEFT
+
+        elif guy.position == guy.LEFT:
+            if guy.y > wall.y - 50 and guy.y < wall.y + 50 and guy.x <= wall.x + 75 and guy.x >  wall.x + 60:
+                dir = LEFT
+            elif guy.y > wall.y - 50 and guy.y < wall.y + 50 and guy.x > wall.x - 75 and guy.x <  wall.x - 55 and guy.action == guy.JUMP:
+                dir = RIGHT
+            elif guy.y > wall.y - 50 and guy.y < wall.y + 50 and guy.x > wall.x - 50 and guy.x <  wall.x - 35 and guy.action == guy.SPIN:
+                dir = RIGHT
+            elif guy.y <= wall.y + 50 and guy.y >= wall.y + 35 and guy.x < wall.x + 75 and guy.x > wall.x - 75:
+                dir = BOTTOM
+
+        #if wall.x >= guy.x - 50 and wall.x <= guy.x + 50 and wall.y > guy.y - 75 and wall.y < guy.y + 75:
+        if(dir > 0):
+            print("Guy %d, %d, Wall %d, %d : dir %d, stop %d, jumping %d, falling %d, fcount %d" % (guy.x, guy.y, wall.x, wall.y, dir, guy.stop, guy.jumping,  guy.falling, fcount))
+        if guy.position == guy.BOTTOM:
+            if dir == RIGHT and guy.stop == False and collide(guy, wall):
                 guy.x = wall.x - 50
-            if wall.x >= guy.x - 25 and wall.x < guy.x + 25 and collide(guy, wall) in (1, 3, 9) :
+                guy.stop = True
+                if wall.shape == wall.LEFT:
+                    guy.death = True
+            elif dir == RIGHT and guy.action != guy.SPIN and guy.stop == True and collide(guy, wall) == False:
+                guy.stop = False
+            if dir == BOTTOM and collide(guy, wall):
+
                 guy.y = wall.y + 75
                 guy.falling = False
+                fcount += 1
+                if wall.shape == wall.UP:
+                    guy.death = True
 
-        if guy.position == guy.RIGHT and collide(guy, wall) in (2, 3, 6):
-            guy.x = wall.x - 75
-            guy.falling = False
-        if guy.position == guy.TOP and collide(guy, wall)in (4, 6, 12):
-            guy.y = wall.y - 75
-            guy.falling = False
-        if guy.position == guy.LEFT and collide(guy, wall)in (8, 9, 12):
-            guy.x = wall.x + 75
-            guy.falling = False
+            if dir == TOP and collide(guy, wall):
+                if wall.shape == wall.DOWN:
+                    guy.death = True
+                if guy.action == guy.JUMP:
+                    guy.frame = 7
+                    guy.y = wall.y - 75
+                elif guy.action == guy.SPIN:
+                    guy.frame = 6
+                    guy.y = wall.y - 50
+
+
+
+        elif guy.position == guy.RIGHT:
+            if dir == TOP and guy.stop == False and collide(guy, wall):
+                guy.y = wall.y - 50
+                guy.stop = True
+                if wall.shape == wall.DOWN:
+                    guy.death = True
+            elif dir == TOP and guy.action != guy.SPIN and guy.stop == True and collide(guy, wall) == False:
+                guy.stop = False
+            if dir == RIGHT and collide(guy, wall):
+                guy.x = wall.x - 75
+                guy.falling = False
+                fcount += 1
+                if wall.shape == wall.LEFT:
+                    guy.death = True
+            if dir == LEFT and collide(guy, wall):
+                if wall.shape == wall.RIGHT:
+                    guy.death = True
+                if guy.action == guy.JUMP:
+                    guy.frame = 7
+                    guy.x = wall.x + 75
+                elif guy.action == guy.SPIN:
+                    guy.frame = 6
+                    guy.x = wall.x + 50
+
+        elif guy.position == guy.TOP:
+            if dir == LEFT and guy.stop == False and collide(guy, wall):
+                guy.x = wall.x + 50
+                guy.stop = True
+                if wall.shape == wall.RIGHT:
+                    guy.death = True
+            elif dir == LEFT and guy.action != guy.SPIN and guy.stop == True and collide(guy, wall) == False:
+                guy.stop = False
+            if dir == TOP and collide(guy, wall):
+                guy.y = wall.y - 75
+                guy.falling = False
+                fcount += 1
+                if wall.shape == wall.DOWN:
+                    guy.death = True
+            if dir == BOTTOM and collide(guy, wall):
+                if wall.shape == wall.UP:
+                    guy.death = True
+                if guy.action == guy.JUMP:
+                    guy.frame = 7
+                    guy.y = wall.y + 75
+                elif guy.action == guy.SPIN:
+                    guy.frame = 6
+                    guy.y = wall.y + 50
+
+        elif guy.position == guy.LEFT:
+            if dir == BOTTOM and guy.stop == False and collide(guy, wall):
+                guy.y = wall.y + 50
+                guy.stop = True
+                if wall.shape == wall.UP:
+                    guy.death = True
+            elif dir == BOTTOM and guy.action != guy.SPIN and guy.stop == True and collide(guy, wall) == False:
+                guy.stop = False
+            if dir == LEFT and collide(guy, wall):
+                guy.x = wall.x + 75
+                guy.falling = False
+                fcount += 1
+                if wall.shape == wall.RIGHT:
+                    guy.death = True
+            if dir == RIGHT and collide(guy, wall):
+                if wall.shape == wall.LEFT:
+                    guy.death = True
+                if guy.action == guy.JUMP:
+                    guy.frame = 7
+                    guy.x = wall.x - 75
+                elif guy.action == guy.SPIN:
+                    guy.frame = 6
+                    guy.x = wall.x - 50
+
+
+        if collide(guy, wall):
+            count += 1
+
+
+
+    if fcount == 0 and guy.jumping == False:
+        guy.falling = True
+        if count == 0:
+            guy.stop = False
+
+    if count:
+        guy.get_collision(True)
+    else:
+        guy.get_collision(False)
 
 
 
@@ -169,9 +364,14 @@ def draw(frame_time):
     bg.draw()
     for wall in map:
         wall.draw()
+    portal.draw()
     guy.draw()
     guy.draw_bb()
+    clear.draw()
+    death.draw()
     update_canvas()
+
+
 
 
 
