@@ -18,6 +18,8 @@ class Portal:
         self.height = 0
         self.total_frames = 0
         self.dir = 0
+
+
     def get_bb(self):
         return self.x - 1 - self.bg.window_left, self.y - 1- self.bg.window_bottom, self.x + 1- self.bg.window_left, self.y + 1- self.bg.window_bottom
     def update(self, frame_time):

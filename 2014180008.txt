@@ -1,0 +1,12 @@
+Wed Dec 6 18:38:58 2017 +0900 2DGP-Project
+Wed Nov 22 18:50:55 2017 +0900 2nd Presentation
+Wed Nov 22 17:33:47 2017 +0900 2DGP Project
+Thu Nov 16 17:30:54 2017 +0900 2DGP Project
+Tue Nov 7 11:27:36 2017 +0900 Merge branch 'master' of https://github.com/alsdnrla1/2DGP-Project
+Tue Nov 7 11:18:47 2017 +0900 2DGP Project
+Tue Nov 7 11:15:21 2017 +0900 2DGP Project
+Tue Oct 24 11:45:20 2017 +0900 Add files via upload
+Tue Oct 24 11:43:18 2017 +0900 First Presentation
+Tue Oct 24 11:41:58 2017 +0900 Delete Mid-term.pdf
+Tue Oct 24 11:41:23 2017 +0900 Mid term presentation
+Tue Oct 24 11:34:48 2017 +0900 first commit

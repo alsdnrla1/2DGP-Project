@@ -13,8 +13,12 @@ class Background:
         self.canvas_height = get_canvas_height()
         self.w = self.image.w
         self.h = self.image.h
+        self.bgm = load_music('Squarium.mp3')
+        self.bgm.set_volume(25)
+        self.bgm.repeat_play()
 
-
+    def set_guy(self, guy):
+        self.guy = guy
 
 
 
@@ -24,6 +28,6 @@ class Background:
 
 
     def update(self, frame_time):
-        self.window_left = clamp(0,int(main.guy.x) - self.canvas_width//2, self.w - self.canvas_width)
-        self.window_bottom = clamp(0, int(main.guy.y) - self.canvas_height//2, self.h - self.canvas_height)
+        self.window_left = clamp(0,int(self.guy.x) - self.canvas_width//2, self.w - self.canvas_width)
+        self.window_bottom = clamp(0, int(self.guy.y) - self.canvas_height//2, self.h - self.canvas_height)
 

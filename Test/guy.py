@@ -34,21 +34,29 @@ class Guy:
     rdis = None
     jdis = None
 
+    jump_sound = None
+
     RUN, JUMP, SPIN = 0, 1, 2
     TOP, BOTTOM, LEFT, RIGHT = 6, 0, 9, 3
     action, position = RUN, BOTTOM
 
     def __init__(self):
-        self.x, self.y = 150, 75
+        self.initx, self.inity = 0, 0
+        self.x, self.y = self.initx, self.inity
         self.frame = 0
         self.total_frames = 0
         self.image = load_image('guy.png')
         self.xdir = 0
         self.ydir = 0
+        self.sound = 1
+        self.stage = 2
+        self.deathcount = 0
 
         if Guy.font == None:
             Guy.font = load_font('ENCR10B.TTF', 25)
-
+        if Guy.jump_sound == None:
+            Guy.jump_sound = load_wav('jump.wav')
+            Guy.jump_sound.set_volume(30)
 
     def set_bg(self, bg):
         self.bg = bg
@@ -57,6 +65,11 @@ class Guy:
         self.col = col
 
     def update(self, frame_time):
+        if self.sound == 0:
+            self.jump_sound.play()
+
+        self.sound = 1
+
         if self.death == True or self.clear == True:
 
             self.jumping = True
@@ -151,15 +164,15 @@ class Guy:
                     self.frame = 0
                     self.position = (self.position + 3) % 12
 
-                    if self.col:
-                        if self.position == self.BOTTOM:
-                            self.y += 25
-                        if self.position == self.TOP:
-                            self.y -= 25
-                        if self.position == self.RIGHT:
-                            self.x -= 25
-                        if self.position == self.LEFT:
-                            self.x += 25
+                    #if self.col:
+                    if self.position == self.BOTTOM:
+                        self.y += 25
+                    if self.position == self.TOP:
+                        self.y -= 25
+                    if self.position == self.RIGHT:
+                        self.x -= 25
+                    if self.position == self.LEFT:
+                        self.x += 25
 
 
 
@@ -175,8 +188,8 @@ class Guy:
         self.y = clamp(0, self.y, self.bg.h)
 
     def draw(self):
-        Guy.font.draw(300 - self.bg.window_left,200 - self.bg.window_bottom, 'Press "SpaceBar" to jump', (255,255,255))
-        Guy.font.draw(1500 - self.bg.window_left,200 - self.bg.window_bottom, 'Press "SpaceBar" twice to spin', (255,255,255))
+        Guy.font.draw(self.initx - self.bg.window_left, self.inity + 175 - self.bg.window_bottom, 'Death Counter = %d'%(self.deathcount), (255,255,100) )
+
 
         if self.image != None:
             if self.jumping == False and self.falling == True:
@@ -191,9 +204,7 @@ class Guy:
 
 
     def get_bb(self):
-        if self.action == self.SPIN:
-            return self.x - 25 - self.bg.window_left, self.y - 25 - self.bg.window_bottom, self.x + 25 - self.bg.window_left, self.y + 25 - self.bg.window_bottom
-        else:
+
             if self.position in (self.TOP, self.BOTTOM):
                 return self.x - 25 - self.bg.window_left, self.y - 50 - self.bg.window_bottom, self.x + 25 - self.bg.window_left, self.y + 50 - self.bg.window_bottom
             else:
@@ -207,6 +218,7 @@ class Guy:
         if self.falling == False and self.death == False:
             if event.type == SDL_KEYDOWN and event.key == SDLK_SPACE and self.jumping == False:
                 self.action = self.JUMP
+                self.sound = 0
             elif event.type == SDL_KEYDOWN and event.key == SDLK_c and self.jumping == False:
                 self.action = self.SPIN
             elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE and self.jumping == True  and self.frame < 3:
