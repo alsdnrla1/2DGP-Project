@@ -77,9 +77,13 @@ def handle_events(frame_time):
 
 def create_map():
     map = []
-    map_file = open('tile.txt', 'r')
-    map_data = json.load(map_file)
-    map_file.close()
+    if guy.stage == 2:
+        map_file = open('map2.json', 'r')
+        map_data = json.load(map_file)
+        map_file.close()
+
+        tile_data = map_data['layers'][0]['data']
+
     count = 0
 
     if guy.stage == 1:
@@ -168,7 +172,7 @@ def create_map():
             map.append(wall)
         return map
     elif guy.stage == 2:
-        for tile in map_data:
+        for tile in tile_data:
             if tile in range (1,6):
                 wall = Wall()
                 wall.idx = count
