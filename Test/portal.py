@@ -51,6 +51,9 @@ class Portal:
 
 
     def draw(self):
-
-        self.image.clip_draw((self.frame % 5) * 75, (2-self.height) * 150, 75, 150, self.x - self.bg.window_left, self.y - self.bg.window_bottom)
+        if self.dir:
+            self.image.clip_draw( (2 - self.height) *150,(self.frame % 5) * 75, 150, 75, self.x - self.bg.window_left,
+                                 self.y - self.bg.window_bottom)
+        else:
+            self.image.clip_draw((self.frame % 5) * 75, (2-self.height) * 150, 75, 150, self.x - self.bg.window_left, self.y - self.bg.window_bottom)
 

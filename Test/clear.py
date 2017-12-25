@@ -60,7 +60,12 @@ class Clear:
                 self.guy.position = self.guy.BOTTOM
                 self.guy.image = load_image('guy.png')
                 self.sound = 0
-                #self.guy.stage += 1
+
+                if self.guy.stage < 3:
+                    self.guy.stage += 1
+                else:
+                    self.guy.ending = 1
+                self.guy.redraw = 1
 
 
 

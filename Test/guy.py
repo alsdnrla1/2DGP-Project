@@ -49,14 +49,16 @@ class Guy:
         self.xdir = 0
         self.ydir = 0
         self.sound = 1
-        self.stage = 2
+        self.stage = 1
         self.deathcount = 0
+        self.redraw = 0
+        self.ending = 0
 
         if Guy.font == None:
             Guy.font = load_font('ENCR10B.TTF', 25)
         if Guy.jump_sound == None:
             Guy.jump_sound = load_wav('jump.wav')
-            Guy.jump_sound.set_volume(30)
+            Guy.jump_sound.set_volume(40)
 
     def set_bg(self, bg):
         self.bg = bg
@@ -188,7 +190,7 @@ class Guy:
         self.y = clamp(0, self.y, self.bg.h)
 
     def draw(self):
-        Guy.font.draw(self.initx - self.bg.window_left, self.inity + 175 - self.bg.window_bottom, 'Death Counter = %d'%(self.deathcount), (255,255,100) )
+        Guy.font.draw(self.initx - self.bg.window_left, self.inity + 175 - self.bg.window_bottom, 'Death Counter = %d'%(self.deathcount), (255,0,0) )
 
 
         if self.image != None:
@@ -219,7 +221,5 @@ class Guy:
             if event.type == SDL_KEYDOWN and event.key == SDLK_SPACE and self.jumping == False:
                 self.action = self.JUMP
                 self.sound = 0
-            elif event.type == SDL_KEYDOWN and event.key == SDLK_c and self.jumping == False:
-                self.action = self.SPIN
             elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE and self.jumping == True  and self.frame < 3:
                 self.action = self.SPIN

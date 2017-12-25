@@ -1,4 +1,5 @@
 import random
+import ending
 
 import game_framework
 from pico2d import *
@@ -18,14 +19,10 @@ bg = None
 
 
 
-
-
-
-
 def enter():
-    global guy, bg, wall, map, death, portal, clear
+    global guy, bg, wall, map, death, portal, clear, deathcount
 
-
+    deathcount = 0
     guy = Guy()
     portal = Portal()
     map = create_map()
@@ -42,7 +39,6 @@ def enter():
     portal.set_bg(bg)
     for wall in map:
         wall.set_bg(bg)
-
 
 
 
@@ -69,6 +65,40 @@ def handle_events(frame_time):
     for event in events:
         if event.type == SDL_QUIT:
             game_framework.quit()
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
+            game_framework.quit()
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_1:
+            guy.stage = 1
+            guy.redraw = 1
+            guy.death = False
+            guy.jumping = False
+            guy.falling = True
+            guy.stop = False
+            guy.clear = False
+            guy.action = guy.RUN
+            guy.position = guy.BOTTOM
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_2:
+            guy.stage = 2
+            guy.redraw = 1
+            guy.death = False
+            guy.jumping = False
+            guy.falling = True
+            guy.stop = False
+            guy.clear = False
+            guy.action = guy.RUN
+            guy.position = guy.BOTTOM
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_3:
+            guy.stage = 3
+            guy.redraw = 1
+            guy.death = False
+            guy.jumping = False
+            guy.falling = True
+            guy.stop = False
+            guy.clear = False
+            guy.action = guy.RUN
+            guy.position = guy.BOTTOM
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_4:
+            guy.ending = 1
         else :
             guy.handle_events(event)
         #elif event.type == SDL_KEYDOWN and event.key == SDLK_p:
@@ -77,137 +107,60 @@ def handle_events(frame_time):
 
 def create_map():
     map = []
-    if guy.stage == 2:
+    if guy.stage == 1:
+        map_file = open('map1.json', 'r')
+    elif guy.stage == 2:
         map_file = open('map2.json', 'r')
-        map_data = json.load(map_file)
-        map_file.close()
+    elif guy.stage == 3:
+        map_file = open('map3.json', 'r')
+    map_data = json.load(map_file)
+    map_file.close()
+    tile_width = map_data['layers'][0]['width']
+    tile_height = map_data['layers'][0]['height']
+    tile_data = map_data['layers'][0]['data']
 
-        tile_data = map_data['layers'][0]['data']
 
     count = 0
 
-    if guy.stage == 1:
-        guy.x, guy.initx = 150
-        guy.y, guy.inity = 100
 
 
-
-
-        wall = Wall()
-        wall.x = 1200
-        wall.y = 450
-        map.append(wall)
-
-        wall = Wall()
-        wall.x = 1200
-        wall.y = 400
-        map.append(wall)
-
-        wall = Wall()
-        wall.x = 1200
-        wall.y = 350
-        map.append(wall)
-
-        wall = Wall()
-        wall.x = 1200
-        wall.y = 300
-        map.append(wall)
-
-        wall = Wall()
-        wall.x = 1250
-        wall.y = 450
-        wall.shape = 4
-        map.append(wall)
-
-        wall = Wall()
-        wall.x = 1250
-        wall.y = 400
-        wall.shape = 4
-        map.append(wall)
-
-        wall = Wall()
-        wall.x = 1250
-        wall.y = 350
-        wall.shape = 4
-        map.append(wall)
-
-        wall = Wall()
-        wall.x = 1250
-        wall.y = 300
-        wall.shape = 4
-        map.append(wall)
-
-        wall = Wall()
-        wall.x = 1750
-        wall.y = 100
-        map.append(wall)
-
-        wall = Wall()
-        wall.x = 600
-        wall.y = 100
-        map.append(wall)
-
-        for i in range(0,100):
+    for tile in tile_data:
+        if tile in range (1,6):
             wall = Wall()
-            wall.x = 50*i + 100
-            wall.y = 0
+            wall.idx = count
+            wall.x = 25 + 50 * (wall.idx % tile_width )         + 1000
+            wall.y = 25 + 50 * (tile_height - 1 - (wall.idx//tile_width))   + 1000
+            if tile == 2:
+                wall.shape = wall.DOWN
+            if tile == 3:
+                wall.shape = wall.LEFT
+            if tile == 4:
+                wall.shape = wall.RIGHT
+            if tile == 5:
+                wall.shape = wall.UP
+
             map.append(wall)
+        elif tile == 6:
 
-        for i in range(0,10):
-            wall = Wall()
-            wall.x = 100
-            wall.y = 50*i
-            map.append(wall)
+            portal.x = 25 + 50 * (count % tile_width) + 1000
+            portal.y = 75 + 50 * (tile_height-1 - count // tile_width) + 1000
+            portal.dir = 0
+        elif tile == 7:
 
-        for i in range(0,100):
-            wall = Wall()
-            wall.x = 25*i*2 + 100
-            wall.y = 500
-            map.append(wall)
-
-        for i in range(0,10):
-            wall = Wall()
-            wall.x = 2000
-            wall.y = 50*i
-            map.append(wall)
-        return map
-    elif guy.stage == 2:
-        for tile in tile_data:
-            if tile in range (1,6):
-                wall = Wall()
-                wall.idx = count
-                wall.x = 25 + 50 * (wall.idx%30)         + 1000
-                wall.y = 25 + 50 * (29 - wall.idx//30)   + 1000
-                if tile == 2:
-                    wall.shape = wall.DOWN
-                if tile == 3:
-                    wall.shape = wall.LEFT
-                if tile == 4:
-                    wall.shape = wall.RIGHT
-                if tile == 5:
-                    wall.shape = wall.UP
-
-                map.append(wall)
-            elif tile == 6:
-
-                portal.x = 25 + 50 * (count % 30) + 1000
-                portal.y = 75 + 50 * (29 - count // 30) + 1000
-
-            elif tile == 7:
-
-                portal.x = -25 + 50 * (count % 30) + 1000
-                portal.y = 25 + 50 * (29 - count // 30) + 1000
-
-            elif tile == 8:
+            portal.x = 75 + 50 * (count % tile_width) + 1000
+            portal.y = 25 + 50 * (tile_height-1 - count // tile_width) + 1000
+            portal.dir = 1
+        elif tile == 8:
 
 
-                guy.initx = 25 + 50 * (count % 30) + 1000
-                guy.inity = 50 + 50 * (29 - (count // 30)) + 1000
-                guy.x = guy.initx
-                guy.y = guy.inity
-            count += 1
+            guy.initx = 25 + 50 * (count % tile_width) + 1000
+            guy.inity = 50 + 50 * (tile_height-1 - (count // tile_width)) + 1000
+            guy.x = guy.initx
+            guy.y = guy.inity
 
-        return map
+        count += 1
+
+    return map
 def collide(a, b):
 
     left_a, bottom_a, right_a, top_a = a.get_bb()
@@ -225,12 +178,25 @@ def collide(a, b):
 
 
 def update(frame_time):
+    global map, wall, deathcount
+
+
 
     guy.update(frame_time)
     portal.update(frame_time)
     death.update(frame_time)
     clear.update(frame_time)
     bg.update(frame_time)
+
+    if guy.redraw == 1:
+        map = create_map()
+        for wall in map:
+            wall.set_bg(bg)
+        if portal.dir:
+            portal.image = load_image('portal1.png')
+        else:
+            portal.image = load_image('portal.png')
+        guy.redraw = 0
 
     if portal.dir == 0 and guy.position in (guy.BOTTOM, guy.TOP) and collide(guy, portal):
         guy.clear = True
@@ -309,7 +275,7 @@ def update(frame_time):
 
                 guy.falling = False
                 fcount += 1
-                if wall.shape == wall.UP and guy.frame > 1:
+                if wall.shape == wall.UP and ((guy.jumping == True and guy.frame > 1)or guy.jumping == False):
                     guy.death = True
 
             if dir == TOP and collide(guy, wall):
@@ -338,7 +304,7 @@ def update(frame_time):
                 guy.x = wall.x - 75
                 guy.falling = False
                 fcount += 1
-                if wall.shape == wall.LEFT and guy.frame > 1:
+                if wall.shape == wall.LEFT and ((guy.jumping == True and guy.frame > 1)or guy.jumping == False):
                     guy.death = True
             if dir == LEFT and collide(guy, wall):
                 if wall.shape == wall.RIGHT:
@@ -364,7 +330,7 @@ def update(frame_time):
                 guy.y = wall.y - 75
                 guy.falling = False
                 fcount += 1
-                if wall.shape == wall.DOWN and guy.frame > 1:
+                if wall.shape == wall.DOWN and ((guy.jumping == True and guy.frame > 1)or guy.jumping == False):
                     guy.death = True
             if dir == BOTTOM and collide(guy, wall):
                 if wall.shape == wall.UP:
@@ -390,7 +356,7 @@ def update(frame_time):
                 guy.x = wall.x + 75
                 guy.falling = False
                 fcount += 1
-                if wall.shape == wall.RIGHT and guy.frame > 1:
+                if wall.shape == wall.RIGHT and ((guy.jumping == True and guy.frame > 1)or guy.jumping == False):
                     guy.death = True
             if dir == RIGHT and collide(guy, wall):
                 if wall.shape == wall.LEFT:
@@ -418,6 +384,10 @@ def update(frame_time):
     else:
         guy.get_collision(False)
 
+    if guy.ending == 1:
+        guy.ending = 0
+        deathcount = guy.deathcount
+        game_framework.push_state(ending)
 
 
 

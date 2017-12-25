@@ -2,17 +2,20 @@ import game_framework
 from pico2d import *
 
 import main
+import title
 
 
 
-name = "TitleState"
+name = "EndingState"
 image = None
-
+font = None
 
 def enter():
-    global image, bg
-    image = load_image('title.png')
-    hide_cursor()
+    global image, bg, font
+    image = load_image('ending.png')
+    font = load_font('ENCR10B.TTF', 50)
+
+
 
 
 def exit():
@@ -29,14 +32,16 @@ def handle_events(frame_time):
         else:
             if event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
                 game_framework.quit()
+
             if (event.type, event.key) == (SDL_KEYDOWN, SDLK_SPACE):
-                game_framework.change_state(main)
+                game_framework.change_state(title)
 
 
 
 def draw(frame_time):
     clear_canvas()
     image.draw(400,300)
+    font.draw(170, 250, 'You Died %d Times' % (main.deathcount), (255, 255, 255))
     update_canvas()
 
 
